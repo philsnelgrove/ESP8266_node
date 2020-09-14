@@ -19,6 +19,13 @@
 
 // transfer the system constant values
 // to ones that have a current context
+//
+// we do this by creating a pointer
+//; (that's what the * is for)
+// that points at the memory location
+// that contains the value of the
+// system constant.  In this way we
+// pass around an address, and not a value
 const char *ssid = STASSID;
 const char *password = STAPSK;
 
