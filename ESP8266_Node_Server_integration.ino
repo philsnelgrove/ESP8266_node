@@ -9,12 +9,12 @@
 // comment the ones you don't need and add your own
 //
 // Bear's place
-#define STASSID "Radio Gnome"
-#define STAPSK  "wakkawakkawakka"
+// #define STASSID "Radio Gnome"
+// #define STAPSK  "wakkawakkawakka"
 //
 // Phil's place
-// #define STASSID "WillowNet Wi-Fi Network"
-// #define STAPSK  "titpw4WN!
+#define STASSID "WillowNet Wi-Fi Network"
+#define STAPSK  "titpw4WN!"
 #endif
 
 // transfer the system constant values
@@ -142,7 +142,8 @@ void loop()
 	// only do these things if we've hit 5 mins
 	if (count > max_count-1)
 	{
-		Serial.print("connecting to ");
+		// note: '\r' is carriage return
+		Serial.print("\rconnecting to ");
 		Serial.print(host);
 		Serial.print(':');
 		Serial.println(port);
