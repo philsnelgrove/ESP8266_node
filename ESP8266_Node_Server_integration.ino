@@ -21,7 +21,7 @@
 // to ones that have a current context
 //
 // we do this by creating a pointer
-//; (that's what the * is for)
+// (that's what the * is for)
 // that points at the memory location
 // that contains the value of the
 // system constant.  In this way we
@@ -41,7 +41,8 @@ const uint16_t port = 9999;
 
 // the number of milliseconds to pause
 // between server polling, this is 5 mins
-int count = 300000;
+int max_count = 300000;
+int count = max_count;
 
 // create the node socket on the port
 // numbered 1 less than the server - in
@@ -139,7 +140,7 @@ void loop()
 {
 	// this is a server push with a data message
 	// only do these things if we've hit 5 mins
-	if (count > 299999)
+	if (count > max_count-1)
 	{
 		Serial.print("connecting to ");
 		Serial.print(host);
