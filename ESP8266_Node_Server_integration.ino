@@ -41,7 +41,7 @@ const uint16_t port = 9999;
 
 // the number of milliseconds to pause
 // between server polling, this is 5 mins
-int max_count = 300000;
+int max_count = 30000;
 int count = max_count;
 
 // create the node socket on the port
@@ -111,7 +111,8 @@ void setup()
 	// we send the handshake message
 	if (client.connected())
 	{
-		String handshake_header = "IP:";
+		String handshake_header = "MAC:";
+		String mac_address = WiFi.macAddress();
 		IPAddress ip = WiFi.localIP(); // @suppress("Invalid arguments")
 		String handshake_ip = String(ip[0]);
 		for (byte octet = 1; octet < 4; ++octet)
@@ -119,7 +120,8 @@ void setup()
 			handshake_ip += '.' + String(ip[octet]);
 		}
 
-		String handshake = handshake_header + handshake_ip;
+		// String handshake = handshake_header + handshake_ip;
+		String handshake = handshake_header + mac_address;
 		client.println(handshake);
 	}
 	// then we process the response from the server as
@@ -166,7 +168,7 @@ void loop()
 		if (client1.connected())
 		{
 			// send it a message
-			client1.println("hello from ESP8266");
+			client1.println("hello from " + WiFi.macAddress());
 		}
 
 		// now we prepare to wait for an answer
