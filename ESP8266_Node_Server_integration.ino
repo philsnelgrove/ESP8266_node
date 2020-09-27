@@ -10,12 +10,12 @@
 // comment the ones you don't need and add your own
 //
 // Bear's place
-#define STASSID "Radio Gnome"
-#define STAPSK  "wakkawakkawakka"
+// #define STASSID "Radio Gnome"
+// #define STAPSK  "wakkawakkawakka"
 //
 // Phil's place
-// #define STASSID "WillowNet Wi-Fi Network"
-// #define STAPSK  "titpw4WN!"
+#define STASSID "WillowNet Wi-Fi Network"
+#define STAPSK  "titpw4WN!"
 //
 // #define STASSID "NEW_HOME"
 // #define STAPSK  "Stephanie88"
@@ -35,8 +35,8 @@ const char *password = STAPSK;
 
 // set this to the IP of the server
 //
-// const char *host = "10.0.0.29";
-const char *host = "192.168.1.24";
+const char *host = "10.0.0.29";
+// const char *host = "192.168.1.24";
 // const char* host = "192.168.0.150";
 
 // whatever port you like; I put
@@ -136,6 +136,49 @@ void setup()
 	client.stop();
 }
 
+void process_command(String command_string)
+{
+	// create a JSON deserialization buffer
+	StaticJsonDocument<256> doc;
+	// deserialize the 'command_string'
+	// into the JSON object
+	// this returns an error object, or not
+	DeserializationError err = deserializeJson(doc, command_string);
+	// if the error object exists, we failed...
+	// find out why and quit
+	if(err)
+	{
+		Serial.print("Error:");
+		Serial.print(err.c_str());
+		return;
+	}
+	// assuming there was no error object,
+	// pull the items from the JSON object
+	const char* command = doc["command"];
+	const char* data = doc["data"];
+	// we now have the 'command' issued to us,
+	// and the 'data' passed as (a) parameter(s).
+	// our 'data' object will also be an object
+	// with whatever parameters were put on it
+	// when it was formed on the server.
+	// there is no error correction with this,
+	// it is assumed that the correct parameters
+	// will be there for the command being called.
+	switch(command)
+	{
+	case "toggle_led":
+		toggle_led();
+	}
+	return;
+}
+
+void toggle_led()
+{
+	// toggle the LED on the ESP8266
+	Serial.print("Toggling LED");
+	return;
+}
+
 // this loop will repeat until the device
 // dies, on an arduino
 void loop()
@@ -227,17 +270,23 @@ void loop()
 	// object, process the inbound content
 	if (client2)
 	{
+		// create the output string...
+		// it must be in this scope (IE
+		// outside loops or conditions)
+		String command_string;
 		// loops as long as the connection persists
 		while (client2.connected())
 		{
 			// loop as long as we are recieving data
+			// adding the characters to an array
 			while (client2.available() > 0)
 			{
 				// process the next character
-				// in the 'read' buffer and
-				// print it out
+				// in the 'read' buffer
 				char c = client2.read();
-				Serial.write(c);
+				// add the character to
+				// the "next spot" in the output string
+				command_string += c;
 			}
 			// sync this operation with the 5 minute count
 			count += 10;
@@ -246,6 +295,10 @@ void loop()
 			// with the 5 minute count
 			delay(10);
 		}
+		// call the "process command" function with
+		// the concatenated output from the connection,
+		// aka the JSON command message
+		process_command(command_string);
 		// close the current connection on the socket
 		client2.stop();
 		Serial.println("Client disconnected");
