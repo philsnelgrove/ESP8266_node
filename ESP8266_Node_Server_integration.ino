@@ -138,6 +138,8 @@ void setup()
 
 void process_command(String command_string)
 {
+	// for debugging, print it out
+	Serial.print(command_string);
 	// create a JSON deserialization buffer
 	StaticJsonDocument<256> doc;
 	// deserialize the 'command_string'
@@ -149,7 +151,7 @@ void process_command(String command_string)
 	if(err)
 	{
 		Serial.print("Error:");
-		Serial.print(err.c_str());
+		Serial.println(err.c_str());
 		return;
 	}
 	// assuming there was no error object,
@@ -164,9 +166,8 @@ void process_command(String command_string)
 	// there is no error correction with this,
 	// it is assumed that the correct parameters
 	// will be there for the command being called.
-	switch(command)
+	if (command == "toggle_led")
 	{
-	case "toggle_led":
 		toggle_led();
 	}
 	return;
