@@ -10,12 +10,12 @@
 // comment the ones you don't need and add your own
 //
 // Bear's place
-// #define STASSID "Radio Gnome"
-// #define STAPSK  "wakkawakkawakka"
+#define STASSID "Radio Gnome"
+#define STAPSK  "wakkawakkawakka"
 //
 // Phil's place
-#define STASSID "WillowNet Wi-Fi Network"
-#define STAPSK  "titpw4WN!"
+// #define STASSID "WillowNet Wi-Fi Network"
+// #define STAPSK  "titpw4WN!"
 //
 // #define STASSID "NEW_HOME"
 // #define STAPSK  "Stephanie88"
@@ -35,8 +35,8 @@ const char *password = STAPSK;
 
 // set this to the IP of the server
 //
-const char *host = "10.0.0.29";
-// const char *host = "192.168.1.24";
+// const char *host = "10.0.0.29";
+const char *host = "192.168.1.26";
 // const char* host = "192.168.0.150";
 
 // whatever port you like; I put
@@ -98,42 +98,7 @@ void setup()
 	// start listening on the socket
 	wifiServer.begin();
 
-	// now that we are connected to wifi
-	// and listening on our port, it's time
-	// to attempt to connect and handshake
-	// with the server
-	WiFiClient client;
-	if (!client.connect(host, port))
-	{
-		// on a failure, quit trying
-		// a device reset will be required
-		// to try again
-		Serial.println("connection failed");
-		delay(5000);
-		return;
-	}
-	// if we connected to the server alright,
-	// we send the handshake message
-	if (client.connected())
-	{
-		DynamicJsonDocument jsonBuffer(128);
-		char output[128];
-		jsonBuffer["mac"] = WiFi.macAddress();
-		jsonBuffer["operation"] = "register_client";
-		jsonBuffer["data"] = "null";
-		serializeJson(jsonBuffer, output);
-		client.println(output);
-	}
-	// then we process the response from the server as
-	// part 2 of the handshake
-	while (client.available())
-	{
-		char ch = static_cast<char>(client.read());
-		Serial.print(ch);
-	}
-	// be done with this communication but
-	// leave all connections active
-	client.stop();
+
 }
 
 void process_command(String command_string)
@@ -180,6 +145,122 @@ void toggle_led()
 	return;
 }
 
+int issue_report(String data)
+{
+	// note: '\r' is carriage return
+	Serial.print("\rconnecting to ");
+	Serial.print(host);
+	Serial.print(':');
+	Serial.println(port);
+	// reset the timer count to 0
+	count = 0;
+	// create a server connection
+	WiFiClient client1;
+	// inform us if the connection fails
+	// and bail on this loop
+	if (!client1.connect(host, port))
+	{
+		Serial.println("connection failed");
+		delay(5000);
+		// 1 = connection failed
+		return 1;
+	}
+	// inform us of success
+	Serial.println("sending data to server");
+	// assuming that we are not only connected,
+	// but our connection is listened to
+	if (client1.connected())
+	{
+		// send it a message
+		DynamicJsonDocument jsonBuffer(128);
+		char output[128];
+		jsonBuffer["mac"] = WiFi.macAddress();
+		jsonBuffer["operation"] = "report";
+		jsonBuffer["data"] = data;
+		serializeJson(jsonBuffer, output);
+		client1.println(output);
+	}
+
+	// now we prepare to wait for an answer
+	unsigned long timeout = millis();
+	// loop while the client is not yet]
+	// communicating with us - when we recieve
+	// an actual message, the 'available' method
+	// will return a non-zero value
+	while (client1.available() == 0)
+	{
+		// if we have waited longer than
+		// 5 seconds to recieve a response,
+		// signal a timeout and bail on this loop
+		if (millis() - timeout > 5000)
+		{
+			Serial.println(">>> Client Timeout !");
+			client1.stop();
+			delay(60000);
+			// status 2 = timeout
+			return 2;
+		}
+	}
+	// inform us of succ1ss
+	Serial.println("receiving from remote server");
+	// as long as we are receiving, display the contents
+	// of the read buffer 1 character at a time
+	while (client1.available())
+	{
+		char ch = static_cast<char>(client1.read());
+		Serial.print(ch);
+	}
+
+	// Close the connection
+	Serial.println("closing connection");
+	Serial.println("***");
+	client1.stop();
+	// 0 = success
+	return 0;
+}
+
+int request_registration()
+{
+	// now that we are connected to wifi
+	// and listening on our port, it's time
+	// to attempt to connect and handshake
+	// with the server
+	WiFiClient client;
+	if (!client.connect(host, port))
+	{
+		// on a failure, quit trying
+		// a device reset will be required
+		// to try again
+		Serial.println("connection failed");
+		delay(5000);
+		return;
+	}
+	// if we connected to the server alright,
+	// we send the handshake message
+	if (client.connected())
+	{
+		DynamicJsonDocument jsonBuffer(128);
+		char output[128];
+		jsonBuffer["mac"] = WiFi.macAddress();
+		jsonBuffer["operation"] = "register_client";
+		jsonBuffer["data"] = "null";
+		serializeJson(jsonBuffer, output);
+		client.println(output);
+	}
+	// then we process the response from the server as
+	// part 2 of the handshake
+	while (client.available())
+	{
+		// TODO: check for an actual response (TBD)
+		char ch = static_cast<char>(client.read());
+		Serial.print(ch);
+	}
+	// be done with this communication but
+	// leave all connections active
+	client.stop();
+	return 0;
+}
+
 // this loop will repeat until the device
 // dies, on an arduino
 void loop()
@@ -188,72 +269,7 @@ void loop()
 	// only do these things if we've hit 5 mins
 	if (count > max_count - 1)
 	{
-		// note: '\r' is carriage return
-		Serial.print("\rconnecting to ");
-		Serial.print(host);
-		Serial.print(':');
-		Serial.println(port);
-		// reset the timer count to 0
-		count = 0;
-		// create a server connection
-		WiFiClient client1;
-		// inform us if the connection fails
-		// and bail on this loop
-		if (!client1.connect(host, port))
-		{
-			Serial.println("connection failed");
-			delay(5000);
-			return;
-		}
-		// inform us of success
-		Serial.println("sending data to server");
-		// assuming that we are not only connected,
-		// but our connection is listened to
-		if (client1.connected())
-		{
-			// send it a message
-			DynamicJsonDocument jsonBuffer(128);
-			char output[128];
-			jsonBuffer["mac"] = WiFi.macAddress();
-			jsonBuffer["operation"] = "report";
-			jsonBuffer["data"] = "periodic report with data";
-			serializeJson(jsonBuffer, output);
-			client1.println(output);
-		}
-
-		// now we prepare to wait for an answer
-		unsigned long timeout = millis();
-		// loop while the client is not yet]
-		// communicating with us - when we recieve
-		// an actual message, the 'available' method
-		// will return a non-zero value
-		while (client1.available() == 0)
-		{
-			// if we have waited longer than
-			// 5 seconds to recieve a response,
-			// signal a timeout and bail on this loop
-			if (millis() - timeout > 5000)
-			{
-				Serial.println(">>> Client Timeout !");
-				client1.stop();
-				delay(60000);
-				return;
-			}
-		}
-		// inform us of success
-		Serial.println("receiving from remote server");
-		// as long as we are receiving, display the contents
-		// of the read buffer 1 character at a time
-		while (client1.available())
-		{
-			char ch = static_cast<char>(client1.read());
-			Serial.print(ch);
-		}
-
-		// Close the connection
-		Serial.println("closing connection");
-		Serial.println("***");
-		client1.stop();
+		int report_status = issue_report("periodic report with data");
 	}
 	// increase the count by 1
 	count++;
