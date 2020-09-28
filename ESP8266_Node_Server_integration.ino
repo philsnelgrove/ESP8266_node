@@ -233,7 +233,7 @@ int request_registration()
 		// to try again
 		Serial.println("connection failed");
 		delay(5000);
-		return;
+		return 1;
 	}
 	// if we connected to the server alright,
 	// we send the handshake message
