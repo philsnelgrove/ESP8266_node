@@ -125,10 +125,10 @@ void setup()
 	Serial.println("IP address: ");
 	Serial.println(WiFi.localIP());
 
+	request_registration();
 	// once we are connected to wifi,
 	// start listening on the socket
 	wifiServer.begin();
-
 }
 
 void process_command(String command_string)
