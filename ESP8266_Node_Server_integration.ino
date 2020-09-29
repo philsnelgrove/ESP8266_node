@@ -10,12 +10,12 @@
 // comment the ones you don't need and add your own
 //
 // Bear's place
-#define STASSID "Radio Gnome"
-#define STAPSK  "wakkawakkawakka"
+// #define STASSID "Radio Gnome"
+// #define STAPSK  "wakkawakkawakka"
 //
 // Phil's place
-// #define STASSID "WillowNet Wi-Fi Network"
-// #define STAPSK  "titpw4WN!"
+#define STASSID "WillowNet Wi-Fi Network"
+#define STAPSK  "titpw4WN!"
 //
 // #define STASSID "NEW_HOME"
 // #define STAPSK  "Stephanie88"
@@ -35,8 +35,8 @@ const char *password = STAPSK;
 
 // set this to the IP of the server
 //
-// const char *host = "10.0.0.29";
-const char *host = "192.168.1.26";
+const char *host = "10.0.0.29";
+// const char *host = "192.168.1.26";
 // const char* host = "192.168.0.150";
 
 // whatever port you like; I put
@@ -98,7 +98,7 @@ void setup()
 	// start listening on the socket
 	wifiServer.begin();
 
-
+	request_registration();
 }
 
 void process_command(String command_string)
