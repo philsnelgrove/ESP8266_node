@@ -97,7 +97,6 @@ void setup()
 	// once we are connected to wifi,
 	// start listening on the socket
 	wifiServer.begin();
-
 	request_registration();
 }
 
