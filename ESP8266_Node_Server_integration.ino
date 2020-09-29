@@ -1,6 +1,14 @@
 // include the library for the wifi adapter
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
+//
+// include library for WiFi Kit 8 board by Heltec
+// board info        - https://heltec.org/project/wifi-kit-8/
+// board manager URL - http://resource.heltec.cn/download/package_heltec_esp8266_index.json
+// code library URL  - https://github.com/HelTecAutomation/Heltec_ESP8266
+
+#include "heltec.h" // alias for `#include "SSD1306Wire.h"`
+
 
 // "ifndef" is a neat thing, it's like a
 // system-level "if" that ends at the
@@ -14,11 +22,11 @@
 // #define STAPSK  "wakkawakkawakka"
 //
 // Phil's place
-#define STASSID "WillowNet Wi-Fi Network"
-#define STAPSK  "titpw4WN!"
+// #define STASSID "WillowNet Wi-Fi Network"
+// #define STAPSK  "titpw4WN!"
 //
-// #define STASSID "NEW_HOME"
-// #define STAPSK  "Stephanie88"
+#define STASSID "NEW_HOME"
+#define STAPSK  "Stephanie88"
 #endif
 
 // transfer the system constant values
@@ -35,9 +43,9 @@ const char *password = STAPSK;
 
 // set this to the IP of the server
 //
-const char *host = "10.0.0.29";
+// const char *host = "10.0.0.29";
 // const char *host = "192.168.1.26";
-// const char* host = "192.168.0.150";
+const char *host = "192.168.0.150";
 
 // whatever port you like; I put
 // the server on 9999 and the nodes
@@ -54,14 +62,37 @@ int count = max_count;
 // this case 9998
 WiFiServer wifiServer(port - 1);
 
+// initialize led_status to OFF;
+  int led_status = false;
+  String led_prefix = "LED Status,";
+  String led_message = led_prefix + led_status;
+
+//initialize text data for display_text
+  String data = "Hello, World!";
+  
+ 
 // the setup function is always
 // run first, once, when the device
 // is activated
 void setup()
 {
+
+  // set pinmode for the builtin LED as an Output (13 on most boards, this should accomodate variations)
+  // and set it OFF
+  pinMode(LED_BUILTIN, OUTPUT);  //set the built-in LED as OUPUT
+  
 	// start a serial connection for
 	// sending telemetry
 	Serial.begin(115200);
+
+  // initialize oled display on WiFi Kit 8
+  Heltec.begin(true /*DisplayEnable Enable*/, true /*Serial Enable*/);
+  Heltec.display->init();
+  Heltec.display->flipScreenVertically();
+  Heltec.display->setFont(ArialMT_Plain_10);
+  Heltec.display->drawString(0,0,"Hello?");
+  Heltec.display->display();
+
 
 	// this is how we use the serial
 	// port to display info on the
@@ -97,7 +128,7 @@ void setup()
 	// once we are connected to wifi,
 	// start listening on the socket
 	wifiServer.begin();
-	request_registration();
+
 }
 
 void process_command(String command_string)
@@ -134,15 +165,42 @@ void process_command(String command_string)
 	{
 		toggle_led();
 	}
+  if (command == "display_text")
+  {
+    display_text(data);
+  }
+
 	return;
 }
 
 void toggle_led()
 {
-	// toggle the LED on the ESP8266
-	Serial.print("Toggling LED");
-	return;
+  // toggle the LED
+  Serial.println("Toggling LED");
+  switch (led_status) {
+
+      case true: // LED is on and I want it off
+        Serial.println("Changing from ON to OFF");
+        digitalWrite(LED_BUILTIN, LOW);
+        led_status = false;
+        break;
+      case false: // LED is off and I want it on
+        Serial.println("Changing from OFF to ON");
+        digitalWrite(LED_BUILTIN, HIGH);
+        led_status = true;
+        break;
+  }
+  return;
 }
+ void display_text(String data)
+ {
+  // display specified text on oled screen, code specific to WiFi Kit 8 board
+  Serial.print("Display Text,");
+  Serial.println(data);
+  Heltec.display->drawString(0,0,data);
+  Heltec.display->display();
+
+ }
 
 int issue_report(String data)
 {
@@ -175,7 +233,8 @@ int issue_report(String data)
 		char output[128];
 		jsonBuffer["mac"] = WiFi.macAddress();
 		jsonBuffer["operation"] = "report";
-		jsonBuffer["data"] = data;
+		// return led_message as data
+		jsonBuffer["data"] = led_message;
 		serializeJson(jsonBuffer, output);
 		client1.println(output);
 	}
@@ -311,12 +370,20 @@ void loop()
 			// with the 5 minute count
 			delay(10);
 		}
+    // override server command_string to toggle every loop for testing purposes
+    Serial.println(led_message);
+ 
 		// call the "process command" function with
 		// the concatenated output from the connection,
 		// aka the JSON command message
-		process_command(command_string);
+		
+
+	  process_command(command_string);
+  
 		// close the current connection on the socket
 		client2.stop();
 		Serial.println("Client disconnected");
+    
 	}
+   
 }
