@@ -124,7 +124,7 @@ void setup()
 	Serial.println("WiFi connected");
 	Serial.println("IP address: ");
 	Serial.println(WiFi.localIP());
-
+	// change
 	request_registration();
 	// once we are connected to wifi,
 	// start listening on the socket
