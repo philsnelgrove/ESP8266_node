@@ -1,3 +1,6 @@
+// new improved version, based on the original version by mikdrad
+// now with more comments!!
+//
 // include the library for the wifi adapter
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
