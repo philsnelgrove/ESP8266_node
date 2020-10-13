@@ -80,7 +80,7 @@ void setup()
 
 	// set pinmode for the builtin LED as an Output (13 on most boards, this should accomodate variations)
 	// and set it OFF
-	// pinMode(LED_BUILTIN, OUTPUT);  //set the built-in LED as OUPUT
+	pinMode(BUILTIN_LED, OUTPUT);  //set the built-in LED as OUPUT
 
 	// start a serial connection for
 	// sending telemetry
@@ -163,7 +163,7 @@ void process_command(String command_string)
 	// it is assumed that the correct parameters
 	// will be there for the command being called.
 	Serial.println(command);
-	if (command == "toggle_led")
+	if (String(command) == "toggle_led")
 	{
 		Serial.println("Calling toggle_led");
 		toggle_led();
@@ -183,10 +183,12 @@ void toggle_led()
 	Serial.println("Toggling LED");
 	if (digitalRead(BUILTIN_LED) == HIGH)
 	{
+		Serial.println("LED was HIGH (off), turning it on");
 		digitalWrite(BUILTIN_LED, LOW);
 	}
 	else
 	{
+		Serial.println("LED was LOW (on), turning it off");
 		digitalWrite(BUILTIN_LED, HIGH);
 	}
 	return;
