@@ -10,7 +10,7 @@
 // board manager URL - http://resource.heltec.cn/download/package_heltec_esp8266_index.json
 // code library URL  - https://github.com/HelTecAutomation/Heltec_ESP8266
 
-// #include "heltec.h" // alias for `#include "SSD1306Wire.h"`
+#include "heltec.h" // alias for `#include "SSD1306Wire.h"`
 
 // "ifndef" is a neat thing, it's like a
 // system-level "if" that ends at the
@@ -45,7 +45,7 @@ const char *password = STAPSK;
 
 // set this to the IP of the server
 //
-const char *host = "10.0.0.163";
+const char *host = "10.0.0.29";
 // const char *host = "192.168.1.26";
 // const char *host = "192.168.0.150";
 
@@ -80,20 +80,20 @@ void setup()
 
 	// set pinmode for the builtin LED as an Output (13 on most boards, this should accomodate variations)
 	// and set it OFF
-	pinMode(BUILTIN_LED, OUTPUT);  //set the built-in LED as OUPUT
+	// pinMode(BUILTIN_LED, OUTPUT);  //set the built-in LED as OUPUT
 
 	// start a serial connection for
 	// sending telemetry
 	Serial.begin(115200);
 
 	// initialize oled display on WiFi Kit 8
-	/*Heltec.begin(true DisplayEnable Enable, true Serial Enable);
-	 Heltec.display->init();
-	 Heltec.display->flipScreenVertically();
-	 Heltec.display->setFont(ArialMT_Plain_10);
-	 Heltec.display->drawString(0,0,"Hello?");
-	 Heltec.display->display();
-	 */
+	/**/
+	Heltec.begin(true, true);
+	Heltec.display->init();
+	Heltec.display->flipScreenVertically();
+	Heltec.display->setFont(ArialMT_Plain_10);
+	Heltec.display->drawString(0, 0, "Hello? Is anybody out there?");
+	Heltec.display->display();
 
 	// this is how we use the serial
 	// port to display info on the
@@ -168,7 +168,7 @@ void process_command(String command_string)
 		Serial.println("Calling toggle_led");
 		toggle_led();
 	}
-	if (command == "display_text")
+	if (String(command) == "display_text")
 	{
 		Serial.println("Calling display_text");
 		display_text(data);
@@ -196,10 +196,13 @@ void toggle_led()
 void display_text(String data)
 {
 	// display specified text on oled screen, code specific to WiFi Kit 8 board
-	Serial.print("Display Text,");
+	Serial.print("Display Text:");
 	Serial.println(data);
-//  Heltec.display->drawString(0,0,data);
-//  Heltec.display->display();
+	Heltec.display->clear();
+	Heltec.display->flipScreenVertically();
+	Heltec.display->setFont(ArialMT_Plain_10);
+	Heltec.display->drawString(0, 0, data);
+	Heltec.display->display();
 
 }
 
